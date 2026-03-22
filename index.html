@@ -1090,7 +1090,7 @@
     <script async src="https://telegram.org/js/telegram-widget.js?22"
       data-telegram-login="PyramidaNetwork_bot"
       data-size="medium"
-      data-onauth="onTelegramAuth(user)"
+      data-auth-url="https://innovative-optimism-production-038d.up.railway.app/api/v1/auth/telegram/callback"
       data-request-access="write">
     </script>
     <noscript><a href="https://t.me/PyramidaNetwork_bot" style="color:#c8a84b;font-size:0.8rem">Войти через Telegram</a></noscript>
@@ -1773,6 +1773,19 @@ const PN_API = 'https://innovative-optimism-production-038d.up.railway.app/api/v
 
 // Загрузить профиль если есть токен
 window.addEventListener('DOMContentLoaded', function() {
+  // Обработка redirect-mode: #tgauth=TOKEN
+  const hash = window.location.hash;
+  if (hash.startsWith('#tgauth=')) {
+    const token = decodeURIComponent(hash.slice('#tgauth='.length));
+    localStorage.setItem('pyramid_access_token', token);
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    pnLoadProfile(token);
+    return;
+  }
+  // Обработка ошибок
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('auth') === 'expired') alert('Ссылка авторизации устарела, попробуй ещё раз');
+  if (params.get('auth') === 'invalid') alert('Ошибка проверки Telegram, попробуй ещё раз');
   const token = localStorage.getItem('pyramid_access_token');
   if (token) pnLoadProfile(token);
 });
