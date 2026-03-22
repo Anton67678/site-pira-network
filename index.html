@@ -1042,6 +1042,18 @@
     transform: translateY(0);
   }
 </style>
+
+<!-- PYRAMID NETWORK AUTH STYLES -->
+<style>
+#pn-auth { display:flex; align-items:center; gap:10px; }
+#pn-profile { display:none; align-items:center; gap:8px; cursor:pointer; }
+#pn-profile img { width:32px; height:32px; border-radius:50%; border:1px solid #c8a84b; }
+#pn-profile-name { font-size:0.8rem; color:#f0e6cc; letter-spacing:0.05em; }
+#pn-balance { font-size:0.75rem; color:#c8a84b; font-weight:700; }
+#pn-logout { font-size:0.7rem; color:rgba(200,168,75,0.6); cursor:pointer; border:none; background:none; padding:2px 6px; }
+#pn-logout:hover { color:#c8a84b; }
+.tg-login-wrap .tg-login-btn { font-size:0.8rem !important; }
+</style>
 </head>
 <body>
 
@@ -1063,7 +1075,27 @@
     <li><a href="#sacred">Sacred Pyramid</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
   </ul>
-  <a href="#games" class="nav-cta">Играть</a>
+  <div id="pn-auth">
+  <!-- Профиль (после входа) -->
+  <div id="pn-profile">
+    <img id="pn-avatar" src="" alt="">
+    <div>
+      <div id="pn-profile-name"></div>
+      <div id="pn-balance">0 PYRA</div>
+    </div>
+    <button id="pn-logout" onclick="pnLogout()">Выйти</button>
+  </div>
+  <!-- Telegram Login Widget (до входа) -->
+  <div id="pn-login-wrap" class="tg-login-wrap">
+    <script async src="https://telegram.org/js/telegram-widget.js?22"
+      data-telegram-login="PyraPlayBot"
+      data-size="medium"
+      data-onauth="onTelegramAuth(user)"
+      data-request-access="write">
+    </script>
+  </div>
+</div>
+<a href="#games" class="nav-cta">Играть</a>
   <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Сменить тему">☀</button>
   <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMenu()">
     <span></span><span></span><span></span>
@@ -1732,6 +1764,61 @@
       ? 'rgba(200,168,75,0.25)' 
       : 'rgba(200,168,75,0.15)';
   });
+</script>
+
+<!-- PYRAMID NETWORK AUTH SCRIPT -->
+<script>
+const PN_API = 'https://innovative-optimism-production-038d.up.railway.app/api/v1';
+
+// Загрузить профиль если есть токен
+window.addEventListener('DOMContentLoaded', function() {
+  const token = localStorage.getItem('pyramid_access_token');
+  if (token) pnLoadProfile(token);
+});
+
+async function onTelegramAuth(user) {
+  try {
+    const res = await fetch(PN_API + '/auth/telegram', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(user)
+    });
+    const data = await res.json();
+    if (data.access_token) {
+      localStorage.setItem('pyramid_access_token', data.access_token);
+      pnShowProfile(data.user);
+    }
+  } catch(e) { console.error('[PN Auth]', e); }
+}
+
+async function pnLoadProfile(token) {
+  try {
+    const res = await fetch(PN_API + '/me', {
+      headers: { 'Authorization': 'Bearer ' + token },
+      credentials: 'include'
+    });
+    if (res.status === 401) { localStorage.removeItem('pyramid_access_token'); return; }
+    const data = await res.json();
+    if (data.user) pnShowProfile(data.user);
+  } catch(e) {}
+}
+
+function pnShowProfile(user) {
+  document.getElementById('pn-login-wrap').style.display = 'none';
+  const prof = document.getElementById('pn-profile');
+  prof.style.display = 'flex';
+  document.getElementById('pn-profile-name').textContent = user.username || 'Игрок';
+  document.getElementById('pn-balance').textContent = (user.pyra_balance || 0) + ' PYRA';
+  if (user.photo_url) document.getElementById('pn-avatar').src = user.photo_url;
+}
+
+function pnLogout() {
+  localStorage.removeItem('pyramid_access_token');
+  fetch(PN_API + '/auth/logout', { method: 'POST', credentials: 'include' });
+  document.getElementById('pn-login-wrap').style.display = 'block';
+  document.getElementById('pn-profile').style.display = 'none';
+}
 </script>
 </body>
 </html>
