@@ -1047,7 +1047,7 @@
 <style>
 #pn-auth { display:flex; align-items:center; gap:10px; }
 #pn-profile { display:none; align-items:center; gap:8px; cursor:pointer; }
-#pn-profile img { width:32px; height:32px; border-radius:50%; border:1px solid #c8a84b; }
+#pn-profile img { width:32px; height:32px; border-radius:50%; border:1px solid #c8a84b; display:none; }
 #pn-profile-name { font-size:0.8rem; color:#f0e6cc; letter-spacing:0.05em; }
 #pn-balance { font-size:0.75rem; color:#c8a84b; font-weight:700; }
 #pn-logout { font-size:0.7rem; color:rgba(200,168,75,0.6); cursor:pointer; border:none; background:none; padding:2px 6px; }
@@ -1093,6 +1093,7 @@
       data-onauth="onTelegramAuth(user)"
       data-request-access="write">
     </script>
+    <noscript><a href="https://t.me/PyramidaNetwork_bot" style="color:#c8a84b;font-size:0.8rem">Войти через Telegram</a></noscript>
   </div>
 </div>
 <a href="#games" class="nav-cta">Играть</a>
@@ -1777,6 +1778,7 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 async function onTelegramAuth(user) {
+  console.log('[PN] Telegram auth callback received', user);
   try {
     const res = await fetch(PN_API + '/auth/telegram', {
       method: 'POST',
@@ -1785,11 +1787,17 @@ async function onTelegramAuth(user) {
       body: JSON.stringify(user)
     });
     const data = await res.json();
+    console.log('[PN] Auth response', data);
     if (data.access_token) {
       localStorage.setItem('pyramid_access_token', data.access_token);
       pnShowProfile(data.user);
+    } else {
+      alert('Ошибка входа: ' + (data.error || JSON.stringify(data)));
     }
-  } catch(e) { console.error('[PN Auth]', e); }
+  } catch(e) {
+    console.error('[PN Auth]', e);
+    alert('Ошибка сети: ' + e.message);
+  }
 }
 
 async function pnLoadProfile(token) {
@@ -1810,7 +1818,11 @@ function pnShowProfile(user) {
   prof.style.display = 'flex';
   document.getElementById('pn-profile-name').textContent = user.username || 'Игрок';
   document.getElementById('pn-balance').textContent = (user.pyra_balance || 0) + ' PYRA';
-  if (user.photo_url) document.getElementById('pn-avatar').src = user.photo_url;
+  const avatar = document.getElementById('pn-avatar');
+  if (user.photo_url) {
+    avatar.src = user.photo_url;
+    avatar.style.display = 'block';
+  }
 }
 
 function pnLogout() {
