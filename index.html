@@ -1832,8 +1832,8 @@ function pnShowProfile(user) {
   document.getElementById('pn-profile-name').textContent = user.username || 'Игрок';
   document.getElementById('pn-balance').textContent = (user.pyra_balance || 0) + ' PYRA';
   const avatar = document.getElementById('pn-avatar');
-  if (user.photo_url) {
-    avatar.src = user.photo_url;
+  if (user.avatar_url || user.photo_url) {
+    avatar.src = user.avatar_url || user.photo_url;
     avatar.style.display = 'block';
   }
 }
