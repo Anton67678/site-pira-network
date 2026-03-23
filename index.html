@@ -1050,6 +1050,7 @@
 #pn-profile img { width:32px; height:32px; border-radius:50%; border:1px solid #c8a84b; display:none; }
 #pn-profile-name { font-size:0.8rem; color:#f0e6cc; letter-spacing:0.05em; }
 #pn-balance { font-size:0.75rem; color:#c8a84b; font-weight:700; }
+#pn-points { font-size:0.75rem; color:#7ecfff; font-weight:700; }
 #pn-logout { font-size:0.7rem; color:rgba(200,168,75,0.6); cursor:pointer; border:none; background:none; padding:2px 6px; }
 #pn-logout:hover { color:#c8a84b; }
 .tg-login-wrap .tg-login-btn { font-size:0.8rem !important; }
@@ -1082,6 +1083,7 @@
     <div>
       <div id="pn-profile-name"></div>
       <div id="pn-balance">0 PYRA</div>
+      <div id="pn-points">0 ●</div>
     </div>
     <button id="pn-logout" onclick="pnLogout()">Выйти</button>
   </div>
@@ -1831,6 +1833,7 @@ function pnShowProfile(user) {
   prof.style.display = 'flex';
   document.getElementById('pn-profile-name').textContent = user.username || 'Игрок';
   document.getElementById('pn-balance').textContent = (user.pyra_balance || 0) + ' PYRA';
+  document.getElementById('pn-points').textContent = (user.points_balance !== undefined ? user.points_balance : 0) + ' ●';
   const avatar = document.getElementById('pn-avatar');
   if (user.avatar_url || user.photo_url) {
     avatar.src = user.avatar_url || user.photo_url;
