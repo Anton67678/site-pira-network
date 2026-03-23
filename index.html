@@ -1839,6 +1839,9 @@ function pnShowProfile(user) {
     avatar.src = user.avatar_url || user.photo_url;
     avatar.style.display = 'block';
   }
+  // Добавить токен в ссылки на игры чтобы авторизация передавалась
+  const tok = localStorage.getItem('pyramid_access_token');
+  if (tok) updateGameLinks(tok);
 }
 
 function pnLogout() {
@@ -1846,7 +1849,23 @@ function pnLogout() {
   fetch(PN_API + '/auth/logout', { method: 'POST', credentials: 'include' });
   document.getElementById('pn-login-wrap').style.display = 'block';
   document.getElementById('pn-profile').style.display = 'none';
+  // Сбросить токен из ссылок на игры
+  updateGameLinks('');
 }
+
+// Вставлять токен в URL всех кнопок "Играть"
+function updateGameLinks(token) {
+  document.querySelectorAll('a.game-play-btn').forEach(function(a) {
+    const base = a.href.split('?')[0];
+    a.href = token ? base + '?token=' + encodeURIComponent(token) : base;
+  });
+}
+
+// При входе обновить ссылки на игры
+window.addEventListener('DOMContentLoaded', function() {
+  const token = localStorage.getItem('pyramid_access_token');
+  if (token) updateGameLinks(token);
+});
 </script>
 </body>
 </html>
